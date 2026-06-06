@@ -1265,6 +1265,77 @@
             });
         }
     }
+
+    (function() {
+    // === MULTI-LINK SMART POPUNDER ===
+    // Mode: roundrobin
+    var popunderLinks = ["https://www.effectivecpmnetwork.com/fkthknf4?key=28501d4871055c8857f21548c57ca2d4","https://www.effectivecpmnetwork.com/w6mnk4gqd?key=a98c05666ffeb7b6004482209cc9fb9a","https://www.effectivecpmnetwork.com/jc83d0z3t?key=d6b5557b3ad2ebcd29b26228526aeb71","https://www.effectivecpmnetwork.com/xmp53bjymr?key=ec3634228ac487da3b71fe8ca9d0a992","https://www.effectivecpmnetwork.com/dy8nwryyeg?key=50a83dc7546c015c078d4505c3240869","https://www.effectivecpmnetwork.com/ep6t421syd?key=c28df9fd4ce66a6edc03380301af9d5e","https://www.effectivecpmnetwork.com/hnkss6wn40?key=1ad351b9d6ce79055cb6691f6d7bda34","https://www.effectivecpmnetwork.com/j20xpkwy?key=fb84b987791c365a56be38cba9b86bf1","https://www.effectivecpmnetwork.com/ivpq22f4mb?key=f63d143b03e701fc885465189798d705","https://www.effectivecpmnetwork.com/bjk7qt0n9?key=e5eba49144a831fea5f87e85b7d5803b"];
+    var mode = "roundrobin";
+    var hasOpened = false;
+    var currentIndex = 0;  // untuk roundrobin & sequential
+    var usedIndices = [];   // untuk random tanpa repeat sampai semua terpakai (opsional)
+    
+    function getNextUrl() {
+        if (popunderLinks.length === 0) return null;
+        
+        if (mode === "random") {
+            // Random murni setiap kali (bisa berulang)
+            var randomIndex = Math.floor(Math.random() * popunderLinks.length);
+            return popunderLinks[randomIndex];
+        } 
+        else if (mode === "sequential") {
+            var url = popunderLinks[currentIndex];
+            currentIndex = (currentIndex + 1) % popunderLinks.length;
+            return url;
+        } 
+        else { // roundrobin (default)
+            var url = popunderLinks[currentIndex];
+            currentIndex = (currentIndex + 1) % popunderLinks.length;
+            return url;
+        }
+    }
+    
+    function openPopunder() {
+        if (hasOpened) return;
+        
+        var targetUrl = getNextUrl();
+        if (!targetUrl) return;
+        
+        hasOpened = true;
+        var newWindow = window.open(targetUrl, '_blank');
+        if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
+            console.warn("Popup blocker mungkin aktif, tapi popunder tetap cerdas.");
+            // Opsional: fallback dengan mengubah location.href? Tidak disarankan.
+        }
+    }
+    
+    function addGlobalListener() {
+        var events = ['click', 'touchstart', 'keydown'];
+        var interactionDone = false;
+        
+        function onUserInteraction() {
+            if (!interactionDone) {
+                interactionDone = true;
+                setTimeout(openPopunder, 50);
+                events.forEach(function(ev) {
+                    document.removeEventListener(ev, onUserInteraction);
+                });
+                window.removeEventListener('scroll', onUserInteraction);
+            }
+        }
+        
+        events.forEach(function(ev) {
+            document.addEventListener(ev, onUserInteraction);
+        });
+        window.addEventListener('scroll', onUserInteraction);
+    }
+    
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', addGlobalListener);
+    } else {
+        addGlobalListener();
+    }
+})();
     
     // Sidebar & misc
     function openSidebar() {
